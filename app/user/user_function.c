@@ -7,8 +7,7 @@
 #include "espconn.h"
 
 #include "user_function.h"
-#include "user_setting.h"
-
+#include "user_wifi.h"
 
 /*
  * Í¨ÓÃº¯Êý
@@ -19,7 +18,6 @@ const char *device_find_request = "Device Report!!";
 
 const char *device_find_response_ok = "I'm clock:";
 
-const char *setting_get_all = "get all setting";
 const char *setting_update = "update";
 
 void ICACHE_FLASH_ATTR
@@ -70,14 +68,6 @@ user_con_received(void *arg, char *pusrdata, unsigned short length) {
 		os_printf("\nupdate\n");
 		os_printf("user bin:%d\n", system_upgrade_userbin_check());
 		user_update();
-	} else if (length == os_strlen(setting_get_all)
-			&& os_strncmp(pusrdata, setting_get_all, os_strlen(setting_get_all)) == 0) {
-
-//		os_sprintf(DeviceBuffer, "%s%03d\n%s%03d\n%s%03d\n%s%03d\n", setting_pwm_max, i, setting_pwm_min, j,
-//				setting_pwm_middle, k, setting_pwm_middle_delay, l);
-//
-//		os_printf("%s", DeviceBuffer);
-//		espconn_sent(pesp_conn, DeviceBuffer, os_strlen(DeviceBuffer));
 	}
 
 }
