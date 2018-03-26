@@ -33,7 +33,7 @@ void ICACHE_FLASH_ATTR user_sntp_timer_func(void *arg) {
 			os_printf("SNTP : %d \n", current_stamp);
 		}else{
 			os_printf("SNTP : fail \n");
-			current_stamp++;
+			if (current_stamp > 0) current_stamp++;
 		}
 	} else if (current_stamp > 0) {
 		current_stamp++;
