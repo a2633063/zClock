@@ -14,9 +14,10 @@
 #define GPIO_TM1628_STB_IO_NUM     14
 #define GPIO_TM1628_STB_IO_FUNC    FUNC_GPIO14
 
+unsigned char auto_brightness;
 unsigned char brightness;
 
-unsigned char Seg[10];
+const unsigned char Seg[10];
 unsigned char display[6];
 void user_tm1628_init(void);
 void user_tm1628_time_refresh(void) ;

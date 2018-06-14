@@ -16,35 +16,72 @@
 #include "user_interface.h"
 #include "espconn.h"
 
+#include "user_config.h"
 #include "user_sntp.h"
+#include "user_tm1628.h"
+#include "user_ds3231.h"
 
 struct struct_time time;
-unsigned int current_stamp;
-
+uint32 current_stamp = 0;
+uint8 timeBCD[7];
 LOCAL os_timer_t timer_sntp;
 
 void ICACHE_FLASH_ATTR user_sntp_timer_func(void *arg) {
-	unsigned int current_stamp_temp;
+	uint32 current_stamp_temp;
+	uint8 i;
 
 	if ((current_stamp == 0 || time.second == 59) && wifi_station_get_connect_status() == STATION_GOT_IP) {
 		current_stamp_temp = sntp_get_current_timestamp();
 		if (current_stamp_temp > 0) {
 			current_stamp = current_stamp_temp;
+
+			time_strtohex((char*) (sntp_get_real_time(current_stamp)));
 			os_printf("SNTP : %d \n", current_stamp);
-		}else{
+			timeBCD[0] = DECtoBCD(time.second);
+			timeBCD[1] = DECtoBCD(time.minute);
+			timeBCD[2] = DECtoBCD(time.hour);
+			timeBCD[3] = DECtoBCD(time.week);
+			timeBCD[4] = DECtoBCD(time.day);
+			timeBCD[5] = DECtoBCD(time.month);
+			timeBCD[6] = DECtoBCD(time.year);
+			user_ds3231_page_write(0, timeBCD, 7);
+			os_printf("SNTP to ds3231 \n");
+		} else {
 			os_printf("SNTP : fail \n");
-			if (current_stamp > 0) current_stamp++;
 		}
-	} else if (current_stamp > 0) {
-		current_stamp++;
 	}
 
-	if (current_stamp > 0) {
-		time_strtohex((char*) (sntp_get_real_time(current_stamp)));
-		os_printf("20%02d/%02d/%02d 周%d %02d:%02d:%02d\n", time.year, time.month, time.day, time.week, time.hour,
-				time.minute, time.second);
-		user_tm1628_time_refresh();
+	user_ds3231_page_read(0, timeBCD, 7);
+	time.second = BCDtoDEC(timeBCD[0]);
+	time.minute = BCDtoDEC(timeBCD[1]);
+	time.hour = BCDtoDEC(timeBCD[2]);
+	time.week = BCDtoDEC(timeBCD[3]);
+	time.day = BCDtoDEC(timeBCD[4]);
+	time.month = BCDtoDEC(timeBCD[5]);
+	time.year = BCDtoDEC(timeBCD[6]);
+
+	if (auto_brightness != 0) {
+		uint16 adc = system_adc_read();
+		if (adc > 845) {
+			brightness=0;
+		}else if (adc > 825) {
+			brightness=1;
+		}else if (adc > 770) {
+			brightness=2;
+		}else if (adc > 700) {
+			brightness=3;
+		}else if (adc > 650) {
+			brightness=4;
+		}else if (adc > 535) {
+			brightness=5;
+		}else if (adc > 420) {
+			brightness=6;
+		}else {
+			brightness=7;
+		}
+		os_printf("brightness:%d		ADC : %d \n",brightness, adc);
 	}
+	user_tm1628_time_refresh();
 
 }
 
@@ -68,8 +105,8 @@ user_sntp_init(void) {
 
 // 将sntp_get_real_time获取到的真实时间字符串,转换为变量time
 void ICACHE_FLASH_ATTR time_strtohex(char* sntp_time) {
-	//获取星期
-	//返回内容为英文Mon,Tues,Wed,Thur,Fri,Sat,Sun 比较第2个字母(周二与周日相同比较第一个)
+//获取星期
+//返回内容为英文Mon,Tues,Wed,Thur,Fri,Sat,Sun 比较第2个字母(周二与周日相同比较第一个)
 	switch (sntp_time[1]) {
 	case 'o':
 		time.week = Monday;
@@ -94,8 +131,8 @@ void ICACHE_FLASH_ATTR time_strtohex(char* sntp_time) {
 		break;
 	}
 
-	//获取英文
-	//比较第3个字母
+//获取英文
+//比较第3个字母
 	sntp_time = (char *) os_strstr(sntp_time, " ");
 	sntp_time++;
 	switch (*(sntp_time + 2)) {
@@ -138,23 +175,23 @@ void ICACHE_FLASH_ATTR time_strtohex(char* sntp_time) {
 		break;	//十二月
 	}
 
-	//获取日
+//获取日
 	sntp_time = (char *) os_strstr(sntp_time, " ");
 	sntp_time++;
 	time.day = (*sntp_time - 0x30) * 10 + *(sntp_time + 1) - 0x30;
-	//获取时
+//获取时
 	sntp_time = (char *) os_strstr(sntp_time, " ");
 	sntp_time++;
 	time.hour = (*sntp_time - 0x30) * 10 + *(sntp_time + 1) - 0x30;
-	//获取分
+//获取分
 	sntp_time = (char *) os_strstr(sntp_time, ":");
 	sntp_time++;
 	time.minute = (*sntp_time - 0x30) * 10 + *(sntp_time + 1) - 0x30;
-	//获取秒
+//获取秒
 	sntp_time = (char *) os_strstr(sntp_time, ":");
 	sntp_time++;
 	time.second = (*sntp_time - 0x30) * 10 + *(sntp_time + 1) - 0x30;
-	//获取年
+//获取年
 	sntp_time = (char *) os_strstr(sntp_time, " ");
 	sntp_time++;
 	time.year = (*(sntp_time + 2) - 0x30) * 10 + *(sntp_time + 3) - 0x30;

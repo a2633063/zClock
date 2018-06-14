@@ -9,14 +9,13 @@
 #include "user_tm1628.h"
 #include "user_sntp.h"
 
-
-const unsigned char SEG_TEMP[4]={0x00,0x80,0x40,0xc0};
+const unsigned char SEG_TEMP[4] = { 0x00, 0x80, 0x40, 0xc0 };
 #define SEG_REB(a) ((a&0x3f)|SEG_TEMP[a>>6])
+#define SEG_DIRECTION(a) (  (((a)&0x07)<<3) | (((a)&0x38)>>3) | (((a)&0x80)>>1) | (((a)&0x40)<<1)  )
 
+const unsigned char Seg[10] = { 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f };
 
-unsigned char Seg[10] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f};
-
-unsigned char display[6] = {0x40,0x40,0x40,0x40,0x40,0x40};
+unsigned char display[6] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
 unsigned char brightness = 3;
 
 LOCAL os_timer_t timer_tm1628;
@@ -24,13 +23,23 @@ LOCAL os_timer_t timer_tm1628;
 void user_tm1628_timer_func(void *arg) {
 	user_tm1628_write_cmd(0x02);	//设置显示模式(02H:6位11段)
 	user_tm1628_write_cmd(0x40);	//设置写显存的数据命令,采用地址自动加1
-//	user_tm1628_write_page(0xc0, display, 6);
-	user_tm1628_write_dat(0xc0,SEG_REB(display[5]));
-	user_tm1628_write_dat(0xc2,SEG_REB(display[4]));
-	user_tm1628_write_dat(0xc4,(display[3]));
-	user_tm1628_write_dat(0xc6,SEG_REB(display[2]));
-	user_tm1628_write_dat(0xc8,(display[1]));
-	user_tm1628_write_dat(0xca,(display[0]));
+
+	if (gpio16_input_get() != 0) {
+		user_tm1628_write_dat(0xc0, SEG_REB(display[5]));
+		user_tm1628_write_dat(0xc2, SEG_REB(display[4]));
+		user_tm1628_write_dat(0xc4, (display[3]));
+		user_tm1628_write_dat(0xc6, SEG_REB(display[2]));
+		user_tm1628_write_dat(0xc8, (display[1]));
+		user_tm1628_write_dat(0xca, (display[0]));
+	} else {
+		user_tm1628_write_dat(0xc0, SEG_DIRECTION((display[0])));
+		user_tm1628_write_dat(0xc2, SEG_DIRECTION((display[1])));
+		user_tm1628_write_dat(0xc4, SEG_DIRECTION(SEG_REB(display[2])));
+		user_tm1628_write_dat(0xc6, SEG_DIRECTION((display[3])));
+		user_tm1628_write_dat(0xc8, SEG_DIRECTION(SEG_REB(display[4])));
+		user_tm1628_write_dat(0xca, SEG_DIRECTION(SEG_REB(display[5])));
+	}
+
 	if (brightness > 7)
 		brightness = 7;
 	user_tm1628_write_cmd(0x88 | brightness);	//开显示,设置亮度
@@ -47,6 +56,8 @@ user_tm1628_init(void) {
 	GPIO_OUTPUT_SET(GPIO_ID_PIN(GPIO_TM1628_CLK_IO_NUM), 0);
 	GPIO_OUTPUT_SET(GPIO_ID_PIN(GPIO_TM1628_STB_IO_NUM), 0);
 
+	gpio16_input_conf();	//配置水银开关接口GPIO16为输出
+
 //	os_timer_disarm(&timer_tm1628);
 	os_timer_setfn(&timer_tm1628, (os_timer_func_t *) user_tm1628_timer_func, NULL);
 	os_timer_arm(&timer_tm1628, 200, 1);	//每200ms刷新一次显示
@@ -55,12 +66,12 @@ user_tm1628_init(void) {
 void ICACHE_FLASH_ATTR
 user_tm1628_time_refresh(void) {
 
-	display[0]=Seg[time.hour/10%10];
-	display[1]=Seg[time.hour%10] |0x80;
-	display[2]=Seg[time.minute/10%10]|0x80;
-	display[3]=Seg[time.minute%10] |0x80;
-	display[4]=Seg[time.second/10%10]|0x80;
-	display[5]=Seg[time.second%10] ;
+	display[0] = Seg[time.hour / 10 % 10];
+	display[1] = Seg[time.hour % 10] | 0x80;
+	display[2] = Seg[time.minute / 10 % 10] | 0x80;
+	display[3] = Seg[time.minute % 10] | 0x80;
+	display[4] = Seg[time.second / 10 % 10] | 0x80;
+	display[5] = Seg[time.second % 10];
 
 }
 

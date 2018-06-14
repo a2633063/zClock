@@ -19,7 +19,7 @@
 #include "user_sntp.h"
 #include "user_tm1628.h"
 #include "user_devicefind.h"
-
+#include "user_ds3231.h"
 
 void user_rf_pre_init(void) {
 //	system_set_os_print(0);	//关闭log打印功能
@@ -43,12 +43,21 @@ void user_init(void) {
 	user_wifi_init();
 	user_key_init();
 	user_led_init();
+	user_ds3231_init();
+	user_sntp_init();
 	user_tm1628_init();
 
-	user_sntp_init();
 
 	//UDP初始化,监听端口12345,当接收到特定字符串时,返回本设备IP及MAC地址
 	user_devicefind_init(12345);
+
+//	char ssid[32] = "Honor 8";
+//	char password[64] = "hyj19910911";
+//	struct station_config stationConf;
+//	stationConf.bssid_set = 0; //need not check MAC address of AP
+//	os_memcpy(&stationConf.ssid, ssid, 32);
+//	os_memcpy(&stationConf.password, password, 64);
+//	wifi_station_set_config(&stationConf);
 
 
 
