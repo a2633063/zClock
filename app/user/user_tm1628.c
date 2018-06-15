@@ -63,16 +63,25 @@ user_tm1628_init(void) {
 	os_timer_arm(&timer_tm1628, 200, 1);	//每200ms刷新一次显示
 }
 
+//0:显示时间	非0:显示日期
 void ICACHE_FLASH_ATTR
-user_tm1628_time_refresh(void) {
+user_tm1628_time_refresh(uint8 flag) {
 
-	display[0] = Seg[time.hour / 10 % 10];
-	display[1] = Seg[time.hour % 10] | 0x80;
-	display[2] = Seg[time.minute / 10 % 10] | 0x80;
-	display[3] = Seg[time.minute % 10] | 0x80;
-	display[4] = Seg[time.second / 10 % 10] | 0x80;
-	display[5] = Seg[time.second % 10];
-
+	if (flag == 0) {
+		display[0] = Seg[time.hour / 10 % 10];
+		display[1] = Seg[time.hour % 10] | 0x80;
+		display[2] = Seg[time.minute / 10 % 10] | 0x80;
+		display[3] = Seg[time.minute % 10] | 0x80;
+		display[4] = Seg[time.second / 10 % 10] | 0x80;
+		display[5] = Seg[time.second % 10];
+	} else {
+		display[0] = 0x00;
+		display[1] = Seg[time.month / 10 % 10];
+		display[2] = Seg[time.month % 10];
+		display[3] = 0x40;
+		display[4] = Seg[time.day / 10 % 10];
+		display[5] = Seg[time.day % 10];
+	}
 }
 
 void ICACHE_FLASH_ATTR

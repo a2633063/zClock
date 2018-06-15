@@ -25,11 +25,12 @@ struct struct_time time;
 uint32 current_stamp = 0;
 uint8 timeBCD[7];
 LOCAL os_timer_t timer_sntp;
+uint8 user_sntp_timer_count=0;
 
 void ICACHE_FLASH_ATTR user_sntp_timer_func(void *arg) {
 	uint32 current_stamp_temp;
 	uint8 i;
-
+	user_sntp_timer_count++;
 	if ((current_stamp == 0 || time.second == 59) && wifi_station_get_connect_status() == STATION_GOT_IP) {
 		current_stamp_temp = sntp_get_current_timestamp();
 		if (current_stamp_temp > 0) {
@@ -81,7 +82,15 @@ void ICACHE_FLASH_ATTR user_sntp_timer_func(void *arg) {
 		}
 		os_printf("brightness:%d		ADC : %d \n",brightness, adc);
 	}
-	user_tm1628_time_refresh();
+
+	if(user_sntp_timer_count<20){
+		user_tm1628_time_refresh(0);
+	}else if(user_sntp_timer_count<26){
+		user_tm1628_time_refresh(1);
+	}else{//bug:当user_sntp_timer_count==11时 不刷新显示,显示为日期
+		user_sntp_timer_count=0;
+	}
+
 
 }
 
