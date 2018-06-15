@@ -100,7 +100,7 @@ user_sntp_init(void) {
 
 	os_timer_disarm(&timer_sntp);
 	os_timer_setfn(&timer_sntp, (os_timer_func_t *) user_sntp_timer_func, NULL);
-	os_timer_arm(&timer_sntp, 1000, 1);	//1s
+	os_timer_arm(&timer_sntp, 400, 1);	//1s
 }
 
 // 将sntp_get_real_time获取到的真实时间字符串,转换为变量time
