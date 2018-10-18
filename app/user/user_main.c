@@ -61,8 +61,8 @@ void user_init(void) {
 	//UDP初始化,监听端口12345,当接收到特定字符串时,返回本设备IP及MAC地址
 	user_devicefind_init(12345);
 
-//	char ssid[32] = "Honor 8";
-//	char password[64] = "hyj19910911";
+//	char ssid[32] = "ap";
+//	char password[64] = "password";
 //	struct station_config stationConf;
 //	stationConf.bssid_set = 0; //need not check MAC address of AP
 //	os_memcpy(&stationConf.ssid, ssid, 32);

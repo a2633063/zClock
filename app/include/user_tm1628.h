@@ -19,6 +19,7 @@ unsigned char brightness;
 
 const unsigned char Seg[10];
 unsigned char display[6];
+void user_tm1628_set_brightness(unsigned char val);
 void user_tm1628_init(void);
 void user_tm1628_time_refresh(uint8 flag) ;
 void user_tm1628_write_cmd(unsigned char cmd);

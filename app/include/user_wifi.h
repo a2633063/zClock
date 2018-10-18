@@ -6,6 +6,7 @@
 #define GPIO_WIFI_LED_IO_NUM     2
 #define GPIO_WIFI_LED_IO_FUNC    FUNC_GPIO2
 
+unsigned char MacAddr[6];
 
 void user_wifi_init(void);
 void user_smartconfig(void);

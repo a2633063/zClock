@@ -4,7 +4,6 @@
 #include "mem.h"
 #include "user_interface.h"
 
-#include "driver\key.h"
 #include "user_key.h"
 #include "user_led.h"
 #include "user_wifi.h"

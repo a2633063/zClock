@@ -21,6 +21,14 @@ unsigned char show_opposite = 0;
 
 LOCAL os_timer_t timer_tm1628;
 
+void ICACHE_FLASH_ATTR
+user_tm1628_set_brightness(unsigned char val){
+	if(val>=0 &&val<=7) {
+		brightness=val;
+		auto_brightness=0;
+	}else auto_brightness=1;
+}
+
 void user_tm1628_timer_func(void *arg) {
 	user_tm1628_write_cmd(0x02);	//设置显示模式(02H:6位11段)
 	user_tm1628_write_cmd(0x40);	//设置写显存的数据命令,采用地址自动加1

@@ -8,6 +8,7 @@
 #include "user_wifi.h"
 
 #include "../include/espconn.h"
+unsigned char MacAddr[6];//储存mac地址
 static os_timer_t wifi_reconnect_timer;
 static uint8 wifi_reconnect_count = 0;
 /*
@@ -144,6 +145,11 @@ void ICACHE_FLASH_ATTR user_wifi_init(void) {
 
 	wifi_set_event_handler_cb(wifi_handle_event_cb);
 	wifi_status_led_install(GPIO_WIFI_LED_IO_NUM, GPIO_WIFI_LED_IO_MUX, GPIO_WIFI_LED_IO_FUNC);
+
+	//获取MAC地址
+	wifi_get_macaddr(STATION_IF, MacAddr);
+	os_printf( "MAC:" MACSTR "\n",  MAC2STR(MacAddr));
+
 }
 
 void ICACHE_FLASH_ATTR user_smartconfig(void) {
