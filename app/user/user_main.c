@@ -25,6 +25,16 @@ void user_rf_pre_init(void) {
 //	system_set_os_print(0);	//关闭log打印功能
 }
 
+
+
+void system_init_done(void) {
+	//gpio16_input_conf();	//配置按键GPIO16为输出 user_key_init中已经初始化
+
+	if(gpio16_input_get()==0){
+		os_printf("system init with KEY pressed,start smartconfig\n");
+		user_smartconfig();
+	}
+}
 /******************************************************************************
  * FunctionName : user_init
  * Description  : entry of user application, init user function here
@@ -60,6 +70,6 @@ void user_init(void) {
 //	wifi_station_set_config(&stationConf);
 
 
-
+	system_init_done_cb(system_init_done);
 }
 

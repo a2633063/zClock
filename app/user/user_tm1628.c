@@ -17,6 +17,7 @@ const unsigned char Seg[10] = { 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 
 
 unsigned char display[6] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
 unsigned char brightness = 3;
+unsigned char show_opposite = 0;
 
 LOCAL os_timer_t timer_tm1628;
 
@@ -24,7 +25,7 @@ void user_tm1628_timer_func(void *arg) {
 	user_tm1628_write_cmd(0x02);	//设置显示模式(02H:6位11段)
 	user_tm1628_write_cmd(0x40);	//设置写显存的数据命令,采用地址自动加1
 
-	if (gpio16_input_get() != 0) {
+	if (show_opposite == 0) {
 		user_tm1628_write_dat(0xc0, SEG_REB(display[5]));
 		user_tm1628_write_dat(0xc2, SEG_REB(display[4]));
 		user_tm1628_write_dat(0xc4, (display[3]));
@@ -56,7 +57,7 @@ user_tm1628_init(void) {
 	GPIO_OUTPUT_SET(GPIO_ID_PIN(GPIO_TM1628_CLK_IO_NUM), 0);
 	GPIO_OUTPUT_SET(GPIO_ID_PIN(GPIO_TM1628_STB_IO_NUM), 0);
 
-	gpio16_input_conf();	//配置水银开关接口GPIO16为输出
+//	gpio16_input_conf();	//配置水银开关接口GPIO16为输出
 
 //	os_timer_disarm(&timer_tm1628);
 	os_timer_setfn(&timer_tm1628, (os_timer_func_t *) user_tm1628_timer_func, NULL);

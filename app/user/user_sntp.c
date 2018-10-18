@@ -21,6 +21,9 @@
 #include "user_tm1628.h"
 #include "user_ds3231.h"
 
+const unsigned int BrightnessVal[] = {605,572,549,526,503,480,400};
+
+
 struct struct_time time;
 uint32 current_stamp = 0;
 uint8 timeBCD[7];
@@ -31,7 +34,7 @@ void ICACHE_FLASH_ATTR user_sntp_timer_func(void *arg) {
 	uint32 current_stamp_temp;
 	uint8 i;
 	user_sntp_timer_count++;
-	if ((current_stamp == 0 || time.second == 59) && wifi_station_get_connect_status() == STATION_GOT_IP) {
+	if ((current_stamp == 0 || (time.second == 59 && time.minute == 59)) && wifi_station_get_connect_status() == STATION_GOT_IP) {
 		current_stamp_temp = sntp_get_current_timestamp();
 		if (current_stamp_temp > 0) {
 			current_stamp = current_stamp_temp;
@@ -45,7 +48,7 @@ void ICACHE_FLASH_ATTR user_sntp_timer_func(void *arg) {
 			timeBCD[4] = DECtoBCD(time.day);
 			timeBCD[5] = DECtoBCD(time.month);
 			timeBCD[6] = DECtoBCD(time.year);
-			user_ds3231_page_write(0, timeBCD, 7);
+			user_ds3231_page_write(0, timeBCD, 7);	//Ê±¼äĞ´Èëds3231
 			os_printf("SNTP to ds3231 \n");
 		} else {
 			os_printf("SNTP : fail \n");
@@ -63,19 +66,19 @@ void ICACHE_FLASH_ATTR user_sntp_timer_func(void *arg) {
 
 	if (auto_brightness != 0) {
 		uint16 adc = system_adc_read();
-		if (adc > 845) {
+		if (adc > BrightnessVal[0]) {
 			brightness=0;
-		}else if (adc > 825) {
+		}else if (adc >BrightnessVal[1] ) {
 			brightness=1;
-		}else if (adc > 770) {
+		}else if (adc >BrightnessVal[2] ) {
 			brightness=2;
-		}else if (adc > 700) {
+		}else if (adc >BrightnessVal[3] ) {
 			brightness=3;
-		}else if (adc > 650) {
+		}else if (adc >BrightnessVal[4] ) {
 			brightness=4;
-		}else if (adc > 535) {
+		}else if (adc > BrightnessVal[5]) {
 			brightness=5;
-		}else if (adc > 420) {
+		}else if (adc > BrightnessVal[6]) {
 			brightness=6;
 		}else {
 			brightness=7;
@@ -102,7 +105,7 @@ user_sntp_init(void) {
 	sntp_setserver(0, addr); // set server 0 by IP address
 	sntp_setservername(1, "us.pool.ntp.org"); // set server 1 by domain name
 	sntp_setservername(2, "ntp.sjtu.edu.cn"); // set server 2 by domain name
-
+	//ntp.aliyun.com
 	sntp_init();
 	os_free(addr);
 	current_stamp = 0;
