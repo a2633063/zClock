@@ -51,35 +51,37 @@ user_con_received(void *arg, char *pusrdata, unsigned short length) {
 				struct ip_info ipconfig;
 				wifi_get_ip_info(STATION_IF, &ipconfig);
 
-				os_memcpy(Device_buffer+6,MacAddr,6);
-				os_memcpy(Device_buffer+12,&(ipconfig.ip),4);
+				os_memcpy(Device_buffer+5,MacAddr,6);
+				os_memcpy(Device_buffer+11,&(ipconfig.ip),4);
 
 				 Device_buffer[0]=0xa5;
 				 Device_buffer[1]=0x5a;
-				 Device_buffer[2]=16;
+				 Device_buffer[2]=15;
 				 Device_buffer[3]=MacAddr[5];
 				 Device_buffer[4]=0;
-				 Device_buffer[5]=0;
 				int i=0;
 				os_printf("send Data:");
-				for(i=0;i<16;i++){
+				for(i=0;i<15;i++){
 					os_printf("%X ",*(Device_buffer+i));
 				}
 				os_printf("\n");
-				espconn_sent(pesp_conn, Device_buffer, 16);
+				espconn_sent(pesp_conn, Device_buffer, 15);
 			}
 				break;
 			case 1:
 			{
-				user_tm1628_set_brightness(*(pusrdata+5));
+				unsigned char light =*(pusrdata+5);
+				if(light != 0xff)
+					user_tm1628_set_brightness(light);
 				Device_buffer[0]=0xa5;
 				 Device_buffer[1]=0x5a;
-				 Device_buffer[2]=16;
+				 Device_buffer[2]=6;
 				 Device_buffer[3]=MacAddr[5];
 				 Device_buffer[4]=1;
-				 Device_buffer[5]=0;
-				 Device_buffer[6]=*(pusrdata+5);
-				 espconn_sent(pesp_conn, Device_buffer, 7);
+				 if(auto_brightness == 0)
+				 Device_buffer[5]=brightness;
+				 else Device_buffer[5]=8;
+				 espconn_sent(pesp_conn, Device_buffer, 6);
 			}
 				break;
 		}
