@@ -7,9 +7,10 @@
 #include "espconn.h"
 
 #include "user_function.h"
+#include "user_setting.h"
 #include "user_wifi.h"
 #include "user_tm1628.h"
-
+#include "user_alarm.h"
 /*
  * 通用函数
  * tcp udp接收数据后的处理函数
@@ -41,13 +42,13 @@ user_con_received(void *arg, char *pusrdata, unsigned short length) {
 		pesp_conn->proto.tcp->remote_ip[3] = premot->remote_ip[3];
 		//espconn_sent(pesp_conn, DeviceBuffer, os_strlen(DeviceBuffer));	//发送数据
 	}
-	if(length>3 && (MacAddr[5]==*(pusrdata+3)||*(pusrdata+3)==0xff) && length==*(pusrdata+2)
+	if(length>4 && (MacAddr[5]==*(pusrdata+3)||*(pusrdata+3)==0xff) && length==*(pusrdata+2)
 			&& *(pusrdata)==0xa5&& *(pusrdata+1)==0x5a){	//长度足够之前且mac地址匹配时才处理数据
 
 		char Device_buffer[60] = { 0 };
 		switch(*(pusrdata+4)){
 			case 0:
-			{
+			{	//查询MAC地址及IP地址
 				struct ip_info ipconfig;
 				wifi_get_ip_info(STATION_IF, &ipconfig);
 
@@ -58,7 +59,7 @@ user_con_received(void *arg, char *pusrdata, unsigned short length) {
 				 Device_buffer[1]=0x5a;
 				 Device_buffer[2]=15;
 				 Device_buffer[3]=MacAddr[5];
-				 Device_buffer[4]=0;
+				 Device_buffer[4]=*(pusrdata+4);
 				int i=0;
 				os_printf("send Data:");
 				for(i=0;i<15;i++){
@@ -69,23 +70,84 @@ user_con_received(void *arg, char *pusrdata, unsigned short length) {
 			}
 				break;
 			case 1:
-			{
+			{	//设置亮度
+				if(length<6)break;
 				unsigned char light =*(pusrdata+5);
 				if(light != 0xff){
 					user_beep_on(100);
 					user_tm1628_set_brightness(light);
 				}
 				Device_buffer[0]=0xa5;
-				 Device_buffer[1]=0x5a;
-				 Device_buffer[2]=6;
-				 Device_buffer[3]=MacAddr[5];
-				 Device_buffer[4]=1;
-				 if(auto_brightness == 0)
-				 Device_buffer[5]=brightness;
-				 else Device_buffer[5]=8;
-				 espconn_sent(pesp_conn, Device_buffer, 6);
+				Device_buffer[1]=0x5a;
+				Device_buffer[2]=6;
+				Device_buffer[3]=MacAddr[5];
+				Device_buffer[4]=*(pusrdata+4);
+				if(auto_brightness == 0)
+					Device_buffer[5]=brightness;
+				else Device_buffer[5]=8;
+				espconn_sent(pesp_conn, Device_buffer, 6);
 			}
-				break;
+			break;
+			case 2:
+			{	//设置闹钟总开关
+				if(length<6)break;
+				unsigned char temp =*(pusrdata+5);
+				if(temp==0||temp==1) {
+					alarm_main_switch=temp;
+					user_setting_save_alarm_switch();
+				}
+				Device_buffer[0]=0xa5;
+				Device_buffer[1]=0x5a;
+				Device_buffer[2]=6;
+				Device_buffer[3]=MacAddr[5];
+				Device_buffer[4]=*(pusrdata+4);
+				Device_buffer[5]=alarm_main_switch;
+				espconn_sent(pesp_conn, Device_buffer, 6);
+			}
+			break;
+			case 3:
+			{	//设置闹钟
+				if(length==5){
+					//查询所有闹钟
+					int i=0;
+					for(i=0;i<ALARM_COUNT;i++){
+					os_memcpy(Device_buffer+6,&alarm[i],sizeof(struct struct_alarm));
+					Device_buffer[0]=0xa5;
+					Device_buffer[1]=0x5a;
+					Device_buffer[2]=10;
+					Device_buffer[3]=MacAddr[5];
+					Device_buffer[4]=*(pusrdata+4);
+					Device_buffer[5]=i;
+					espconn_sent(pesp_conn, Device_buffer, 10);
+					}
+					break;
+				}
+
+				unsigned char no=*(pusrdata+5);	//闹钟编号
+				if(no>=ALARM_COUNT) break;
+				if(length>=10){
+					alarm[no].on=*(pusrdata+6);	//闹钟开关
+					alarm[no].repeat=*(pusrdata+7);	//闹钟重复
+					alarm[no].hour=*(pusrdata+8);	//闹钟时
+					alarm[no].minute=*(pusrdata+9);	//闹钟分
+					//TODO: 保存闹钟配置
+					user_setting_save_alarm(no);
+				}
+
+				os_memcpy(Device_buffer+6,&alarm[no],sizeof(struct struct_alarm));
+
+				Device_buffer[0]=0xa5;
+				Device_buffer[1]=0x5a;
+				Device_buffer[2]=10;
+				Device_buffer[3]=MacAddr[5];
+				Device_buffer[4]=*(pusrdata+4);
+				Device_buffer[5]=no;
+
+				espconn_sent(pesp_conn, Device_buffer, 10);
+
+
+			}
+			break;
 		}
 
 	}
