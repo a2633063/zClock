@@ -9,6 +9,7 @@
 #include "user_wifi.h"
 
 #include "user_tm1628.h"
+#include "user_beep.h"
 
 #define KEY_LONG_PRESS_TIME 50
 LOCAL os_timer_t timer_key;
@@ -18,14 +19,18 @@ LOCAL unsigned char key_time=0;
 
 LOCAL void ICACHE_FLASH_ATTR
 user_key0_short_press(void) {
+	user_beep_on(100);
 	os_printf("key0_short_press\n");
 	if(++brightness>7) brightness=0;
+
 }
 
 LOCAL void ICACHE_FLASH_ATTR
 user_key0_long_press(void) {
+	user_beep_on(200);
 	os_printf("key0_long_press\n");
 	auto_brightness=!auto_brightness;
+
 }
 
 void ICACHE_FLASH_ATTR user_key_timer_func(void *arg) {

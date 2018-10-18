@@ -71,8 +71,10 @@ user_con_received(void *arg, char *pusrdata, unsigned short length) {
 			case 1:
 			{
 				unsigned char light =*(pusrdata+5);
-				if(light != 0xff)
+				if(light != 0xff){
+					user_beep_on(100);
 					user_tm1628_set_brightness(light);
+				}
 				Device_buffer[0]=0xa5;
 				 Device_buffer[1]=0x5a;
 				 Device_buffer[2]=6;
