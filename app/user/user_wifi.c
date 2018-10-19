@@ -54,7 +54,7 @@ void wifi_handle_event_cb(System_Event_t *evt) {
 	case EVENT_STAMODE_DISCONNECTED:	//wifi¶Ï¿ª
 		wifi_reconnect_count++;
 		os_printf("wifi disconnect from ssid %s, reason %d,count: %d\n", evt->event_info.disconnected.ssid, evt->event_info.disconnected.reason,wifi_reconnect_count);
-		if (wifi_reconnect_count > 19) {
+		if (wifi_reconnect_count > 9) {
 			wifi_reconnect_count=0;
 			os_printf("Reconnect after 60 seconds\n");
 			wifi_station_disconnect();

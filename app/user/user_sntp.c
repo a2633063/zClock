@@ -20,6 +20,7 @@
 #include "user_sntp.h"
 #include "user_tm1628.h"
 #include "user_ds3231.h"
+#include "user_alarm.h"
 
 const unsigned int BrightnessVal[] = {605,572,549,526,503,480,400};
 
@@ -63,7 +64,7 @@ void ICACHE_FLASH_ATTR user_sntp_timer_func(void *arg) {
 	time.day = BCDtoDEC(timeBCD[4]);
 	time.month = BCDtoDEC(timeBCD[5]);
 	time.year = BCDtoDEC(timeBCD[6]);
-
+	user_alarm_check(time);
 	if (auto_brightness != 0) {
 		uint16 adc = system_adc_read();
 		if (adc > BrightnessVal[0]) {

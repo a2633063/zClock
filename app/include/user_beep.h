@@ -3,7 +3,7 @@
 
 #define GPIO_BEEP_0_IO_NUM 2
 
-void user_beep_on(unsigned char beep);
+void user_beep_on(unsigned int beep);
 
 void user_beep_init(void);
 #endif

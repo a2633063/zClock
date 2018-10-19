@@ -5,6 +5,7 @@
 #include "user_interface.h"
 #include "gpio.h"
 #include "user_beep.h"
+#include "user_alarm.h"
 
 
 
@@ -15,12 +16,19 @@ LOCAL os_timer_t timer_beep;
 void ICACHE_FLASH_ATTR user_beep_timer_func(void *arg) {
 	if(GPIO_INPUT_GET(GPIO_BEEP_0_IO_NUM)==BEEP_ON){
 		GPIO_OUTPUT_SET(GPIO_BEEP_0_IO_NUM, BEEP_OFF);
+		if(alarm_flag){
+			os_timer_disarm(&timer_beep);
+			os_timer_setfn(&timer_beep, (os_timer_func_t *) user_beep_timer_func, NULL);
+			os_timer_arm(&timer_beep, 200, 0);
+		}
+	}else if(alarm_flag){
+		user_beep_on(300);
 	}
 }
 
 
 void ICACHE_FLASH_ATTR
-user_beep_on(unsigned char beep_time) {
+user_beep_on(unsigned int beep_time) {
 	GPIO_OUTPUT_SET(GPIO_BEEP_0_IO_NUM, BEEP_ON);
 	os_timer_disarm(&timer_beep);
 	os_timer_setfn(&timer_beep, (os_timer_func_t *) user_beep_timer_func, NULL);
