@@ -1,7 +1,7 @@
 #ifndef __USER_BEEP_H__
 #define __USER_BEEP_H__
 
-#define GPIO_BEEP_0_IO_NUM 2
+#define GPIO_BEEP_0_IO_NUM 0
 
 void user_beep_on(unsigned int beep);
 
