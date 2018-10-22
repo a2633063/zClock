@@ -12,7 +12,9 @@
 - 日期时间交替显示
 - 在线升级
 
+## 电路图
 
+见 [PCB_LED_6_ESP8266.pdf](https://github.com/a2633063/ESP8266_Clock/blob/master/PCB_LED_6_ESP8266.pdf)
 
 ## 通讯协议
 
