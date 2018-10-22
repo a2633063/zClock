@@ -47,6 +47,14 @@ user_con_received(void *arg, char *pusrdata, unsigned short length) {
 
 		char Device_buffer[60] = { 0 };
 		switch(*(pusrdata+4)){
+			case 0xff:
+			{
+				if(length == 9){
+					os_printf("user bin:%d\n", system_upgrade_userbin_check());
+					user_update(*(pusrdata+5),*(pusrdata+6),*(pusrdata+7),*(pusrdata+8));
+				}
+			}
+			break;
 			case 0:
 			{	//查询MAC地址及IP地址
 				struct ip_info ipconfig;

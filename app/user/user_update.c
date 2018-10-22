@@ -76,8 +76,12 @@ void ICACHE_FLASH_ATTR ota_start_Upgrade(uint8_t serverVersion, const char *serv
 	}
 }
 
-void ICACHE_FLASH_ATTR user_update(void) {
-	char serverip[] = { 192,168, 1, 101 };
+void ICACHE_FLASH_ATTR user_update(char a,char b,char c,char d) {
+	char serverip[4] ;
+	serverip[0]=a;
+	serverip[1]=b;
+	serverip[2]=c;
+	serverip[3]=d;
 	char path[] = "ESP/";
 	ota_start_Upgrade(2, serverip, 81, path);
 	user_set_led(0);
