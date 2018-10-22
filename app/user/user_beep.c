@@ -43,7 +43,7 @@ void ICACHE_FLASH_ATTR
 user_beep_init(void) {
 
 	GPIO_DIS_OUTPUT(GPIO_BEEP_0_IO_NUM);	//配置蜂鸣器GPIO0为输出
-
+	//PIN_PULLUP_DIS(GPIO_BEEP_0_IO_MUX); //设置成开漏
 
 	os_timer_disarm(&timer_beep);
 	os_timer_setfn(&timer_beep, (os_timer_func_t *) user_beep_timer_func, NULL);
