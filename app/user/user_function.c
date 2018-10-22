@@ -156,6 +156,24 @@ user_con_received(void *arg, char *pusrdata, unsigned short length) {
 
 			}
 			break;
+			case 4:
+			{	//ÉèÖÃ·½Ïò
+				if(length<6)break;
+				unsigned char temp =*(pusrdata+5);
+				if(temp ==1 ||temp ==0){
+					show_opposite=temp;
+				}
+				Device_buffer[0]=0xa5;
+				Device_buffer[1]=0x5a;
+				Device_buffer[2]=6;
+				Device_buffer[3]=MacAddr[5];
+				Device_buffer[4]=*(pusrdata+4);
+				if(auto_brightness == 0)
+					Device_buffer[5]=show_opposite;
+				else Device_buffer[5]=8;
+				espconn_sent(pesp_conn, Device_buffer, 6);
+			}
+			break;
 		}
 
 	}

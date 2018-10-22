@@ -16,6 +16,7 @@
 
 unsigned char auto_brightness;
 unsigned char brightness;
+unsigned char show_opposite;
 
 const unsigned char Seg[10];
 unsigned char display[6];
