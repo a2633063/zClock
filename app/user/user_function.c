@@ -133,6 +133,7 @@ user_con_received(void *arg, char *pusrdata, unsigned short length) {
 
 				unsigned char no=*(pusrdata+5);	//ÄÖÖÓ±àºÅ
 				if(no>=ALARM_COUNT) break;
+
 				if(length>=10){
 					alarm[no].on=*(pusrdata+6);	//ÄÖÖÓ¿ª¹Ø
 					alarm[no].repeat=*(pusrdata+7);	//ÄÖÖÓÖØ¸´
@@ -168,9 +169,8 @@ user_con_received(void *arg, char *pusrdata, unsigned short length) {
 				Device_buffer[2]=6;
 				Device_buffer[3]=MacAddr[5];
 				Device_buffer[4]=*(pusrdata+4);
-				if(auto_brightness == 0)
-					Device_buffer[5]=show_opposite;
-				else Device_buffer[5]=8;
+				Device_buffer[5]=show_opposite;
+
 				espconn_sent(pesp_conn, Device_buffer, 6);
 			}
 			break;

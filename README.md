@@ -63,7 +63,7 @@ wifi通信使用UDP通信协议,发送十六进制值
 
 格式与app发送给ESP8266相同,格式如下(每个为一个字节):
 
-> A5 5A Length MAC CMD DATA1 DATA2 DATA3.... DATAn....
+> A5 5A Length M4AC CMD DATA1 DATA2 DATA3.... DATAn....
 
 其中 `A5 5A`包头,表示数据开始
 
