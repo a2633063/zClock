@@ -131,16 +131,16 @@ void ICACHE_FLASH_ATTR user_wifi_init(void) {
 	//设置为station模式
 	if (wifi_get_opmode() != STATION_MODE || wifi_get_opmode_default() != STATION_MODE) {
 		wifi_set_opmode(STATION_MODE);
+		os_printf("set wifi mode:station");
 	}
-	os_printf("set wifi mode:station\n");
 
-	//失能自动连接AP
+	//设置自动连接AP
 	if (wifi_station_get_auto_connect() == 0) {
 		wifi_station_set_auto_connect(1);	//失能上电自动连接已记录的 AP,必须在system_init_done_cb中手动连接wifi
+		os_printf("set auto connect AP:true");
 	}
-	os_printf("set auto connect AP\n");
 
-	//设置连接失败后自动重连ap,使用定时器每隔15s尝试连接一次
+	//设置连接失败后自动重连ap
 	wifi_station_set_reconnect_policy(true);
 
 	wifi_set_event_handler_cb(wifi_handle_event_cb);

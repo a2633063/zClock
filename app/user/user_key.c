@@ -72,7 +72,7 @@ void ICACHE_FLASH_ATTR user_key_timer_func(void *arg) {
 void ICACHE_FLASH_ATTR
 user_key_init(void) {
 	//GPIO16不支持外部中断,所以无法直接使用key driver
-	gpio16_input_conf();	//配置按键GPIO16为输出
+	gpio16_input_conf();	//配置按键GPIO16为输入
 
 
 	os_timer_disarm(&timer_key);

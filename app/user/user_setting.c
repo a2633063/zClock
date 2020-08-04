@@ -81,7 +81,7 @@ user_setting_init(void) {
 			if(alarm[i].minute>59) alarm[i].minute=0;
 		}
 
-		os_printf("\nAlarm:	%d:%d,%x  %d:%d",i,alarm[i].on,alarm[i].repeat,alarm[i].hour,alarm[i].minute);
+		os_printf("Alarm:	%d:%d,%x  %d:%d\n",i,alarm[i].on,alarm[i].repeat,alarm[i].hour,alarm[i].minute);
 	}
 
 
