@@ -46,7 +46,7 @@ void ICACHE_FLASH_ATTR user_alarm_close(){
 		if((alarm_flag>>i)&0x01){
 			if(alarm[i].repeat==0) {
 				alarm[i].on=0;
-				user_setting_save_alarm(i);
+//				user_setting_save_alarm(i);
 			}
 			alarm_flag &=(~(0x01<<i));
 		}

@@ -13,17 +13,22 @@
 
 #include "user_interface.h"
 
+#include "user_config.h"
 #include "user_key.h"
 #include "user_led.h"
 #include "user_wifi.h"
 #include "user_sntp.h"
 #include "user_tm1628.h"
-#include "user_devicefind.h"
+#include "user_udp.h"
 #include "user_ds3231.h"
 #include "user_beep.h"
 #include "user_alarm.h"
 #include "user_setting.h"
+#include "user_webserver.h"
+#include "user_mqtt.h"
 
+
+user_config_t user_config;
 
 #if ((SPI_FLASH_SIZE_MAP == 0) || (SPI_FLASH_SIZE_MAP == 1))
 #error "The flash map is not supported"
@@ -106,16 +111,17 @@ void user_init(void) {
 
 	user_setting_init();
 
-	user_wifi_init();
-	user_key_init();
-	user_led_init();
 	user_ds3231_init();
 	user_tm1628_init();
-	user_beep_init();
-
-	//UDP初始化,监听端口12345,当接收到特定字符串时,返回本设备IP及MAC地址
-	user_devicefind_init(10182);
+	user_key_init();
+	user_led_init();
+	user_wifi_init();
 	user_sntp_init();
+
+	//UDP初始化,监听端口10182
+	user_devicefind_init(10182);
+	user_webserver_init(80);
+	user_beep_init();
 
 //	char ssid[32] = "ap";
 //	char password[64] = "password";
@@ -125,6 +131,6 @@ void user_init(void) {
 //	os_memcpy(&stationConf.password, password, 64);
 //	wifi_station_set_config(&stationConf);
 
-	system_init_done_cb(system_init_done);
+	//system_init_done_cb(system_init_done);
 }
 

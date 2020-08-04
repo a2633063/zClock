@@ -4,85 +4,68 @@
 #include "mem.h"
 #include "user_interface.h"
 
+#include "user_config.h"
 #include "user_setting.h"
-#include "user_alarm.h"
+#include "user_wifi.h"
 
-#define	SETTING_SAVE_ALARM_SWITCH_ADDR  0xf0
-#define	SETTING_SAVE_ALARM_ADDR  0xf4
-
-
-//注意:struct_alarm结构体长度正好为4字节,如果修改,注意读写spi时4字节对齐
-
-void ICACHE_FLASH_ATTR
-user_setting_save_alarm_switch() {
-	uint32 val=alarm_main_switch;
-	spi_flash_erase_sector(SETTING_SAVE_ALARM_SWITCH_ADDR);
-	spi_flash_write(SETTING_SAVE_ALARM_SWITCH_ADDR  * 4096,&val, 4);
-}
-
-void ICACHE_FLASH_ATTR
-user_setting_get_alarm_switch() {
-	uint32 val;
-	spi_flash_read(SETTING_SAVE_ALARM_SWITCH_ADDR * 4096,&val, 4);
-	alarm_main_switch=val&0xff;
-}
-
-
-
-
-void ICACHE_FLASH_ATTR
-user_setting_save_alarm(unsigned char no) {
-	spi_flash_erase_sector(SETTING_SAVE_ALARM_ADDR + no*4);
-
-	uint32 value;
-	value=alarm[no].on;
-	value=(value<<8)|alarm[no].repeat;
-	value=(value<<8)|alarm[no].hour;
-	value=(value<<8)|alarm[no].minute;
-
-	os_printf("\nSave Setting: %x,%x,%x,%x\n",alarm[no].on,alarm[no].repeat,alarm[no].hour,alarm[no].minute);
-	spi_flash_write((SETTING_SAVE_ALARM_ADDR + no*4) * 4096, &value, 4);
-}
-
-void ICACHE_FLASH_ATTR
-user_setting_get_alarm(unsigned char no) {
-
-	uint32 value;
-	spi_flash_read((SETTING_SAVE_ALARM_ADDR + no*4) * 4096, &value, 4);
-	alarm[no].minute=value&0xff;
-	alarm[no].hour=(value>>8)&0xff;
-	alarm[no].repeat=(value>>16)&0xff;
-	alarm[no].on=(value>>24)&0xff;
-	//spi_flash_read((SETTING_SAVE_ALARM_ADDR + no*4) * 4096, (uint32 *)&alarm[no], 4);//直接使用此出错
-
-}
 
 
 void ICACHE_FLASH_ATTR
 user_setting_init(void) {
-	user_setting_get_alarm_switch();
-	if(alarm_main_switch!=1) alarm_main_switch=0;
-	os_printf("Get Setting alarm_main_switch:%d\n",alarm_main_switch);
+	user_setting_get_config();
 
-
-	unsigned char i=0;
-	for(i=0;i<ALARM_COUNT;i++)
-	{
-		user_setting_get_alarm(i);
-		if(alarm[i].on>1){
-			alarm[i].on=0;
-			alarm[i].repeat=0;
-			alarm[i].hour=0;
-			alarm[i].minute=0;
-			user_setting_save_alarm(i);
-		}
-		else {
-			if(alarm[i].hour>23) alarm[i].hour=0;
-			if(alarm[i].minute>59) alarm[i].minute=0;
-		}
-
-		os_printf("Alarm:	%d:%d,%x  %d:%d\n",i,alarm[i].on,alarm[i].repeat,alarm[i].hour,alarm[i].minute);
-	}
-
+	os_printf("Device name:\"%s\"\r\n", user_config.name);
+	os_printf("MQTT Service ip:\"%s:%d\"\r\n", user_config.mqtt_ip, user_config.mqtt_port);
+	os_printf("MQTT Service user:\"%s\"\r\n", user_config.mqtt_user);
+	os_printf("MQTT Service password:\"%s\"\r\n", user_config.mqtt_password);
 
 }
+
+
+void ICACHE_FLASH_ATTR
+user_setting_set_config(void) {
+
+	uint16_t i, j;
+	uint32_t length = sizeof(user_config_t);
+	if (length % 4 != 0)
+		length += 4 - length % 4;	// 4 字节对齐。
+	uint8_t *p = (uint8_t *) os_malloc(length);
+	os_memcpy(p, &user_config, length);
+	spi_flash_erase_sector(SETTING_SAVE_ADDR);
+	spi_flash_write(SETTING_SAVE_ADDR * 4096, (uint32 *) p, length);
+
+	os_free(p);
+}
+
+void ICACHE_FLASH_ATTR
+user_setting_get_config(void) {
+	uint32 val;
+
+	uint16_t i, j;
+	uint32_t length = sizeof(user_config_t);
+	if (length % 4 != 0)
+		length += 4 - length % 4;	// 4 字节对齐。
+	uint8_t *p = (uint8_t *) os_malloc(length);
+
+	spi_flash_read(SETTING_SAVE_ADDR * 4096, (uint32 *) p, length);
+
+	os_memcpy(&user_config, p, length);
+	os_free(p);
+
+
+//	os_printf("user_config.name[0]:0x%02x 0x%02x 0x%02x\r\n", user_config.name[0],user_config.name[1],user_config.name[2]);
+	if (user_config.name[0] == 0xff && user_config.name[1] == 0xff && user_config.name[2] == 0xff || user_config.version != USER_CONFIG_VERSION) {
+
+		wifi_get_macaddr(STATION_IF, hwaddr);
+		os_sprintf(user_config.name, DEVICE_NAME, hwaddr[4], hwaddr[5]);
+		os_sprintf(user_config.mqtt_ip, "");
+		os_sprintf(user_config.mqtt_user, "");
+		os_sprintf(user_config.mqtt_password, "");
+		user_config.mqtt_port = 1883;
+		user_config.version = USER_CONFIG_VERSION;
+
+		user_setting_set_config();
+	}
+}
+
+
