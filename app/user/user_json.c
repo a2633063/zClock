@@ -13,13 +13,12 @@
 #include "user_json.h"
 #include "user_setting.h"
 #include "user_function.h"
-
-
+#include "user_tm1628.h"
 
 void ICACHE_FLASH_ATTR user_json_analysis(bool udp_flag, u8* jsonRoot) {
-	uint8_t i;
+	uint8_t i, temp;
 	bool update_user_config_flag = false;   //标志位,记录最后是否需要更新储存的数据
-	uint8_t plug_retained = 0;
+	uint8_t retained = 0;
 	cJSON *pJsonRoot = cJSON_Parse(jsonRoot);	//首先整体判断是否为一个json格式的数据
 	//如果是否json格式数据
 	if (pJsonRoot != NULL) {
@@ -79,8 +78,51 @@ void ICACHE_FLASH_ATTR user_json_analysis(bool udp_flag, u8* jsonRoot) {
 				}
 			}
 
+			//设置显示方向
+			cJSON *p_direction = cJSON_GetObjectItem(pJsonRoot, "direction");
+			if (p_direction) {
+				if (cJSON_IsNumber(p_direction)) {
+					if (p_direction->valueint == 1)
+						temp = 1;
+					else
+						temp = 0;
+					if (temp != user_config.direction) {
+						update_user_config_flag = true;
+						user_config.direction = temp;
+					}
+				}
+				cJSON_AddNumberToObject(json_send, "direction", user_config.direction);
+			}
 
+			//设置亮度/开关/自动亮度
+			cJSON *p_auto_brightness = cJSON_GetObjectItem(pJsonRoot, "auto_brightness");
+			cJSON *p_on = cJSON_GetObjectItem(pJsonRoot, "on");
+			cJSON *p_brightness = cJSON_GetObjectItem(pJsonRoot, "brightness");
+			if (p_on || p_brightness || p_auto_brightness) {
+				if (p_auto_brightness && cJSON_IsNumber(p_auto_brightness) && auto_brightness != p_auto_brightness->valueint
+						&& p_auto_brightness->valueint <= 1 && p_auto_brightness->valueint >= 0) {
+					auto_brightness = p_auto_brightness->valueint;
+					retained = 1;
+				}
 
+				if (p_brightness && cJSON_IsNumber(p_brightness) && brightness != p_brightness->valueint && p_brightness->valueint <= 8
+						&& p_brightness->valueint >= 0) {
+					if (p_brightness->valueint == 0)
+						brightness_on = 0;
+					else {
+						brightness = p_brightness->valueint;
+						auto_brightness = 0;
+					}
+					retained = 1;
+				}
+				if (p_on && cJSON_IsNumber(p_on) && brightness_on != p_on->valueint && p_on->valueint <= 1 && p_on->valueint >= 0) {
+					brightness_on = p_on->valueint;
+					retained = 1;
+				}
+				cJSON_AddNumberToObject(json_send, "brightness", brightness_on == 0 ? 0 : brightness);
+				cJSON_AddNumberToObject(json_send, "on", brightness_on == 0 ? 0 : 1);
+				cJSON_AddNumberToObject(json_send, "auto_brightness", auto_brightness);
+			}
 
 			cJSON *p_setting = cJSON_GetObjectItem(pJsonRoot, "setting");
 			if (p_setting) {
@@ -201,7 +243,7 @@ void ICACHE_FLASH_ATTR user_json_analysis(bool udp_flag, u8* jsonRoot) {
 
 			char *json_str = cJSON_Print(json_send);
 			os_printf("json_send: %s\r\n", json_str);
-			user_send(udp_flag, json_str, plug_retained);
+			user_send(udp_flag, json_str, retained);
 			cJSON_free((void *) json_str);
 
 			if (update_user_config_flag) {

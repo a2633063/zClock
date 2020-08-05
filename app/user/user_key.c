@@ -25,7 +25,7 @@ user_key0_short_press(void) {
 		user_alarm_close();
 	else{
 		user_beep_on(100);
-		if(++brightness>7) brightness=0;
+		if(++brightness>8) brightness=1;
 	}
 }
 

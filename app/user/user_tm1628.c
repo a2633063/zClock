@@ -16,8 +16,8 @@ const unsigned char SEG_TEMP[4] = { 0x00, 0x80, 0x40, 0xc0 };
 const unsigned char Seg[10] = { 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f };
 
 unsigned char display[6] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
-unsigned char brightness = 3;
-unsigned char show_opposite = 0;
+unsigned char brightness = 4;
+unsigned char brightness_on = 1;
 
 LOCAL os_timer_t timer_tm1628;
 
@@ -33,25 +33,25 @@ void user_tm1628_timer_func(void *arg) {
 	user_tm1628_write_cmd(0x02);	//设置显示模式(02H:6位11段)
 	user_tm1628_write_cmd(0x40);	//设置写显存的数据命令,采用地址自动加1
 
-	if (show_opposite == 0) {
-		user_tm1628_write_dat(0xc0, SEG_REB(display[5]));
-		user_tm1628_write_dat(0xc2, SEG_REB(display[4]));
-		user_tm1628_write_dat(0xc4, (display[3]));
-		user_tm1628_write_dat(0xc6, SEG_REB(display[2]));
-		user_tm1628_write_dat(0xc8, (display[1]));
-		user_tm1628_write_dat(0xca, (display[0]));
-	} else {
+	if (user_config.direction == 1) {
 		user_tm1628_write_dat(0xc0, SEG_DIRECTION((display[0])));
 		user_tm1628_write_dat(0xc2, SEG_DIRECTION((display[1])));
 		user_tm1628_write_dat(0xc4, SEG_DIRECTION(SEG_REB(display[2])));
 		user_tm1628_write_dat(0xc6, SEG_DIRECTION((display[3])));
 		user_tm1628_write_dat(0xc8, SEG_DIRECTION(SEG_REB(display[4])));
 		user_tm1628_write_dat(0xca, SEG_DIRECTION(SEG_REB(display[5])));
+	} else {
+		user_tm1628_write_dat(0xc0, SEG_REB(display[5]));
+		user_tm1628_write_dat(0xc2, SEG_REB(display[4]));
+		user_tm1628_write_dat(0xc4, (display[3]));
+		user_tm1628_write_dat(0xc6, SEG_REB(display[2]));
+		user_tm1628_write_dat(0xc8, (display[1]));
+		user_tm1628_write_dat(0xca, (display[0]));
 	}
 
-	if (brightness > 7)
-		brightness = 7;
-	user_tm1628_write_cmd(0x88 | brightness);	//开显示,设置亮度
+	if (brightness > 8)
+		brightness = 8;
+	user_tm1628_write_cmd((brightness_on==1?(0x88| (brightness-1)):0x80) );	//开显示,设置亮度
 }
 
 void ICACHE_FLASH_ATTR
@@ -69,7 +69,7 @@ user_tm1628_init(void) {
 
 //	os_timer_disarm(&timer_tm1628);
 	os_timer_setfn(&timer_tm1628, (os_timer_func_t *) user_tm1628_timer_func, NULL);
-	os_timer_arm(&timer_tm1628, 200, 1);	//每200ms刷新一次显示
+	os_timer_arm(&timer_tm1628, 150, 1);	//每150ms刷新一次显示
 }
 
 //0:显示时间	非0:显示日期

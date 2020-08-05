@@ -35,7 +35,7 @@ void ICACHE_FLASH_ATTR user_sntp_timer_func(void *arg) {
 	uint32 current_stamp_temp;
 	uint8 i;
 	user_sntp_timer_count++;
-	if ((current_stamp == 0 || (time.second == 59 && time.minute == 59)) && wifi_station_get_connect_status() == STATION_GOT_IP) {
+	if ((current_stamp == 0 || (time.second == 10 && time.minute == 59)) && wifi_station_get_connect_status() == STATION_GOT_IP) {
 		current_stamp_temp = sntp_get_current_timestamp();
 		if (current_stamp_temp > 0) {
 			current_stamp = current_stamp_temp;
@@ -64,32 +64,32 @@ void ICACHE_FLASH_ATTR user_sntp_timer_func(void *arg) {
 	time.day = BCDtoDEC(timeBCD[4]);
 	time.month = BCDtoDEC(timeBCD[5]);
 	time.year = BCDtoDEC(timeBCD[6]);
-	user_alarm_check(time);
+//	user_alarm_check(time);
 	if (auto_brightness != 0) {
 		uint16 adc = system_adc_read();
 		if (adc > BrightnessVal[0]) {
-			brightness=0;
-		}else if (adc >BrightnessVal[1] ) {
 			brightness=1;
-		}else if (adc >BrightnessVal[2] ) {
+		}else if (adc >BrightnessVal[1] ) {
 			brightness=2;
-		}else if (adc >BrightnessVal[3] ) {
+		}else if (adc >BrightnessVal[2] ) {
 			brightness=3;
-		}else if (adc >BrightnessVal[4] ) {
+		}else if (adc >BrightnessVal[3] ) {
 			brightness=4;
-		}else if (adc > BrightnessVal[5]) {
+		}else if (adc >BrightnessVal[4] ) {
 			brightness=5;
-		}else if (adc > BrightnessVal[6]) {
+		}else if (adc > BrightnessVal[5]) {
 			brightness=6;
-		}else {
+		}else if (adc > BrightnessVal[6]) {
 			brightness=7;
+		}else {
+			brightness=8;
 		}
 		os_printf("brightness:%d		ADC : %d \n",brightness, adc);
 	}
 
 	if(user_sntp_timer_count<20){
 		user_tm1628_time_refresh(0);
-	}else if(user_sntp_timer_count<26){
+	}else if(user_sntp_timer_count<21){
 		user_tm1628_time_refresh(1);
 	}else{//bug:当user_sntp_timer_count==11时 不刷新显示,显示为日期
 		user_sntp_timer_count=0;
@@ -113,7 +113,7 @@ user_sntp_init(void) {
 
 	os_timer_disarm(&timer_sntp);
 	os_timer_setfn(&timer_sntp, (os_timer_func_t *) user_sntp_timer_func, NULL);
-	os_timer_arm(&timer_sntp, 400, 1);	//1s
+	os_timer_arm(&timer_sntp, 400, 1);	//400ms
 }
 
 // 将sntp_get_real_time获取到的真实时间字符串,转换为变量time

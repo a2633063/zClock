@@ -30,7 +30,7 @@ typedef struct {
 	uint16_t mqtt_port;        //mqtt service port
 	uint8_t mqtt_user[SETTING_MQTT_STRING_LENGTH_MAX];     //mqtt service user
 	uint8_t mqtt_password[SETTING_MQTT_STRING_LENGTH_MAX];     //mqtt service user
-
+	uint8_t direction;
 
 } user_config_t;
 

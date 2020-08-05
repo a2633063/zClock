@@ -8,8 +8,6 @@
 #include "user_setting.h"
 #include "user_wifi.h"
 
-
-
 void ICACHE_FLASH_ATTR
 user_setting_init(void) {
 	user_setting_get_config();
@@ -20,7 +18,6 @@ user_setting_init(void) {
 	os_printf("MQTT Service password:\"%s\"\r\n", user_config.mqtt_password);
 
 }
-
 
 void ICACHE_FLASH_ATTR
 user_setting_set_config(void) {
@@ -52,6 +49,8 @@ user_setting_get_config(void) {
 	os_memcpy(&user_config, p, length);
 	os_free(p);
 
+	if (user_config.direction != 0 && user_config.direction != 1)
+		user_config.direction = 0;
 
 //	os_printf("user_config.name[0]:0x%02x 0x%02x 0x%02x\r\n", user_config.name[0],user_config.name[1],user_config.name[2]);
 	if (user_config.name[0] == 0xff && user_config.name[1] == 0xff && user_config.name[2] == 0xff || user_config.version != USER_CONFIG_VERSION) {
@@ -63,9 +62,8 @@ user_setting_get_config(void) {
 		os_sprintf(user_config.mqtt_password, "");
 		user_config.mqtt_port = 1883;
 		user_config.version = USER_CONFIG_VERSION;
-
+		user_config.direction = 0;
 		user_setting_set_config();
 	}
 }
-
 
