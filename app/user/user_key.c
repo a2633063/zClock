@@ -15,65 +15,69 @@
 #define KEY_LONG_PRESS_TIME 50
 LOCAL os_timer_t timer_key;
 
-LOCAL unsigned char key_state=0;
-LOCAL unsigned char key_time=0;
+LOCAL unsigned char key_timer_num = 0;
+LOCAL unsigned char key_state = 0;
+LOCAL unsigned char key_time = 0;
 
 LOCAL void ICACHE_FLASH_ATTR
 user_key0_short_press(void) {
 	os_printf("key0_short_press\n");
-	if(alarm_flag)
+	if (alarm_flag)
 		user_alarm_close();
-	else{
+	else {
 		user_beep_on(100);
-		if(++brightness>8) brightness=1;
+		brightness_on = !brightness_on;
 	}
 }
 
 LOCAL void ICACHE_FLASH_ATTR
 user_key0_long_press(void) {
-	if(alarm_flag)
+	if (alarm_flag)
 		user_alarm_close();
-	else{
-		user_beep_on(200);
+	else {
+		user_beep_on(100);
 		os_printf("key0_long_press\n");
-		auto_brightness=!auto_brightness;
+		auto_brightness = 0;
+		brightness_on = 1;
+		if (++brightness > 8)
+			brightness = 1;
 	}
 }
 
 void ICACHE_FLASH_ATTR user_key_timer_func(void *arg) {
 
-	unsigned char state=gpio16_input_get();
+	unsigned char state = gpio16_input_get();
 
-	if(key_state==0 && state==0){
-		key_state=1;
-	}else if(key_state==1 && state==0){
-		key_state=2;
-	}else if(key_state==2 && state==0){
-		if(key_time++>KEY_LONG_PRESS_TIME) {
+	if (key_state == 0 && state == 0) {
+		key_state = 1;
+	} else if (key_state == 1 && state == 0) {
+		key_state = 2;
+	} else if (key_state == 2 && state == 0) {
+		if (key_time++ > KEY_LONG_PRESS_TIME) {
 			user_key0_long_press();
-			key_state=3;
+			key_state = 3;
 		}
-	}else if(key_state==2 && state==1){
-		if(key_time<KEY_LONG_PRESS_TIME) user_key0_short_press();
-		key_state=3;
-	}else if(key_state==3 && state==0){
-
-	}else{
-		key_state=1;
-		key_time=0;
+	} else if (key_state == 2 && state == 1) {
+		if (key_time < KEY_LONG_PRESS_TIME)
+			user_key0_short_press();
+		key_state = 3;
+	} else if (key_state == 3 && state == 0) {
+		if (++key_timer_num > 30) {
+			key_timer_num = 0;
+			user_key0_long_press();
+		}
+	} else {
+		key_state = 1;
+		key_time = 0;
+		key_timer_num = 0;
 	}
 
 }
-
-
-
-
 
 void ICACHE_FLASH_ATTR
 user_key_init(void) {
 	//GPIO16不支持外部中断,所以无法直接使用key driver
 	gpio16_input_conf();	//配置按键GPIO16为输入
-
 
 	os_timer_disarm(&timer_key);
 	os_timer_setfn(&timer_key, (os_timer_func_t *) user_key_timer_func, NULL);

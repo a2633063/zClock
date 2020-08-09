@@ -99,23 +99,24 @@ void ICACHE_FLASH_ATTR user_json_analysis(bool udp_flag, u8* jsonRoot) {
 			cJSON *p_on = cJSON_GetObjectItem(pJsonRoot, "on");
 			cJSON *p_brightness = cJSON_GetObjectItem(pJsonRoot, "brightness");
 			if (p_on || p_brightness || p_auto_brightness) {
-				if (p_auto_brightness && cJSON_IsNumber(p_auto_brightness) && auto_brightness != p_auto_brightness->valueint
-						&& p_auto_brightness->valueint <= 1 && p_auto_brightness->valueint >= 0) {
+				if (p_auto_brightness && cJSON_IsNumber(p_auto_brightness) && p_auto_brightness->valueint <= 1
+						&& p_auto_brightness->valueint >= 0) {
 					auto_brightness = p_auto_brightness->valueint;
 					retained = 1;
 				}
 
-				if (p_brightness && cJSON_IsNumber(p_brightness) && brightness != p_brightness->valueint && p_brightness->valueint <= 8
+				if (p_brightness && cJSON_IsNumber(p_brightness) && p_brightness->valueint <= 8
 						&& p_brightness->valueint >= 0) {
-					if (p_brightness->valueint == 0)
+					if (p_brightness->valueint == 0) {
 						brightness_on = 0;
-					else {
+					} else {
 						brightness = p_brightness->valueint;
 						auto_brightness = 0;
+						brightness_on = 1;
 					}
 					retained = 1;
 				}
-				if (p_on && cJSON_IsNumber(p_on) && brightness_on != p_on->valueint && p_on->valueint <= 1 && p_on->valueint >= 0) {
+				if (p_on && cJSON_IsNumber(p_on) && p_on->valueint <= 1 && p_on->valueint >= 0) {
 					brightness_on = p_on->valueint;
 					retained = 1;
 				}
