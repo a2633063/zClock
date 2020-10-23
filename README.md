@@ -32,7 +32,7 @@
 - [x] ds3231时间 	
 - [x] 光敏电阻自动配置亮度/手动设置亮度
 - [ ] 自动亮度档位调节
-- [x] ~~水银开关自动配置数码管方向~~ 当前硬件无水银开关
+- [ ] ~~水银开关自动配置数码管方向~~ 当前硬件无水银开关
 - [x] 手动设置屏幕显示方向
 - [x] Web配置wifi
 - [x] 自动网络校时
@@ -78,7 +78,7 @@
 
 > 如果你不知道什么是mqtt或homeassistant,所有有关的内容可以跳过.
 
-> 如果你有任何问题,可以直接在此项目中提交issue,或给我发送邮件:zip_zhang@foxmail.com,邮件标题中请注明[zDC1].
+> 如果你有任何问题,可以直接在此项目中提交issue,或给我发送邮件:zip_zhang@foxmail.com,邮件标题中请注明[zClock].
 >
 > 
 
@@ -96,9 +96,11 @@
 
 ## 电路图
 
-见 [PCB_LED_6_ESP8266.pdf](https://github.com/a2633063/zClock/blob/master/PCB_LED_6_ESP8266.pdf)
+电路图文件见 [PCB_LED_6_ESP8266.pdf](https://github.com/a2633063/zClock/blob/master/PCB_LED_6_ESP8266.pdf)
 
-## 
+pcb文件见[PCB_LED_6_ESP8266_0625.PcbDoc](https://github.com/a2633063/zClock/blob/master/PCB_LED_6_ESP8266_0625.PcbDoc)
+
+
 
 ## 拆机接线及烧录固件相关
 

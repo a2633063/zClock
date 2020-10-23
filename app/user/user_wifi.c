@@ -51,8 +51,6 @@ void wifi_handle_event_cb(System_Event_t *evt) {
 	case EVENT_STAMODE_CONNECTED:	//wifi连接
 		wifi_states = STATE_WIFI_STAMODE_CONNECTED;
 		os_printf("wifi connect to ssid %s, channel %d\n", evt->event_info.connected.ssid, evt->event_info.connected.channel);
-		wifi_status_led_uninstall();
-		user_set_led(0);
 		break;
 	case EVENT_STAMODE_DISCONNECTED:	//wifi断开
 		wifi_states = STATE_WIFI_STAMODE_DISCONNECTED;
@@ -69,7 +67,7 @@ void wifi_handle_event_cb(System_Event_t *evt) {
 		os_sprintf(strIP, IPSTR, IP2STR(&evt->event_info.got_ip.ip));
 		wifi_states = STATE_WIFI_STAMODE_GOT_IP;
 		wifi_status_led_uninstall();
-		user_set_led(0);
+		user_set_led(1);
 		user_mqtt_connect();	//连接MQTT服务器
 		break;
 	case EVENT_SOFTAPMODE_STACONNECTED:
